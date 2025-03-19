@@ -1,0 +1,77 @@
+#version 450
+
+struct MyVertex {
+    vec4 pos;
+    vec4 tex_coords;
+    vec4 normal;
+    vec4 tangent;
+};
+
+struct MyBoneVertex {
+    vec4 pos;
+    uvec4 bone_indices;
+    vec4 bone_weights;
+};
+
+struct SkinningInstance {
+    uint bone_vertices_index;
+    uint joint_transforms_index;
+    uint base_render_vertices_index;
+    uint output_render_vertices_index;
+    uint vertex_count;
+};
+
+layout(std140, set = 0, binding = 0) buffer VertexBuffer {
+    MyVertex obj[];
+} mvb;
+
+layout(std140, set = 0, binding = 0) buffer BoneVertexBuffer {
+    MyBoneVertex obj[];
+} mbvb;
+
+layout(std140, set = 0, binding = 1) buffer SkinningInstanceBuffer {
+    SkinningInstance obj[];
+} si_buf;
+
+layout(std140, set = 0, binding = 2) buffer JointMatricesBuffer {
+    mat4 obj[];
+} jm_buf;
+
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout( push_constant ) uniform SkinningJob {
+    uint bone_vertices_index;
+    uint joint_transforms_index;
+    uint base_render_vertices_index;
+    uint output_render_vertices_index;
+    uint vertex_count;
+} sk_job;
+
+void main() 
+{
+    // uint vertex_count = 361;
+    // SkinningJob si_obj = si_buf.obj[0];
+    uint vertex_count = sk_job.vertex_count;
+    uint invoc_index = gl_GlobalInvocationID.x;
+    uint base_render_index = invoc_index + sk_job.base_render_vertices_index;
+    uint output_render_index = invoc_index + sk_job.output_render_vertices_index;
+
+    if (invoc_index < vertex_count) {
+        MyBoneVertex bone_vertex = mbvb.obj[sk_job.bone_vertices_index + invoc_index];
+
+        // make skin matrix
+        mat4 skin_matrix = mat4(0.0);
+        for (int i = 0; i < 4; i++) {
+            uint bone_index = bone_vertex.bone_indices[i] + sk_job.joint_transforms_index;
+            float bone_weight = bone_vertex.bone_weights[i];
+            skin_matrix += jm_buf.obj[bone_index] * bone_weight;
+        }
+
+        vec4 bone_pos = vec4(vec3(bone_vertex.pos), 1.0);
+
+        // copy base vertex, apply skinned pos, and write to output
+        MyVertex base_render_vertex = mvb.obj[base_render_index];
+        base_render_vertex.pos = vec4(vec3(skin_matrix * bone_pos), 0.0);
+        mvb.obj[output_render_index] = base_render_vertex;
+    }
+}

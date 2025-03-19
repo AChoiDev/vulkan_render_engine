@@ -1,0 +1,8 @@
+Instance:"BoomBox.scene_0" 
+.position {.y 5f} 
+
+Instance:"DamagedHelmet.scene_0" 
+.position {.x -10.0f}
+
+Instance:"AntiqueCamera.scene_0" 
+.position {.x 6.0f}

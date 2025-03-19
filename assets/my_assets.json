@@ -1,0 +1,12 @@
+{
+    "assets" : [
+        {
+            "name" : "BoomBox",
+            "path" : "assets/BoomBox.glb"
+        },
+        {
+            "name" : "AntiqueCamera",
+            "path" : "AntiqueCamera.glb"
+        }
+    ]
+}

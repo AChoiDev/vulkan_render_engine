@@ -1,0 +1,28 @@
+KEY:
+- "|" is sequential OR
+- "_" zero or more whitespace/comments
+- "?" zero or one
+- "+" one or more
+- "*" zero or more (inf)
+
+// literals
+literal = string | int | float
+string = "\"" str_char* "\""
+str_char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+float = "-"? ASCII_DIGIT+ ("." ASCII_DIGIT+)? "f"
+int = "-" ASCII_DIGIT+ "i"
+
+decl_name = ASCII_ALPHA (ASCII_ALPHANUMERIC | "_")*
+field = "." decl_name _ (field_object | literal)
+
+// objects
+field_object = (decl_name ":")? "{" ( _ field)* _ "}"
+array_object = (decl_name)? ( _ field)*
+array_item = "-" (array_object | literal)
+array = "[" ( _ array_item)* _ "]"
+
+main = SOF ( _ field)* _ EOF

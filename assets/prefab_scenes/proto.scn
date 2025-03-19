@@ -1,0 +1,16 @@
+.node_actions [
+    -Add
+    .name "hello world" 
+    .object Pivot:{
+        .position Vec3:{.x 2.0 .y 40 .z 5} 
+    }
+    -Add
+    .name "cool_ent" 
+    .parent 0i 
+    .object Pivot:{ 
+        .position {.x -3 .y 40 .z 5} 
+    }
+    -Instance
+    .prefab "gltf_fox.scene_0"
+    .position Vec3:{.x 2.0f .y 40f .z 5f} 
+]

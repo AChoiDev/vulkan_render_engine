@@ -1,0 +1,33 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+main = _{ SOI ~ (add_node | instance_node)+ ~ EOI }
+
+// Node types
+add_node = { add_node_decl ~ field_list ~ "{" ~ field_list ~ "}"}
+add_node_decl = ${ ("Add:" ~ decl_name) }
+
+instance_node = { instance_node_decl ~ field_list }
+instance_node_decl = ${ ("Instance:" ~ string) }
+
+// Objects and fields
+field_list = { field* }
+field = { field_decl ~ (("{" ~ field_list ~ "}") | value_literal ) }
+field_decl = ${"." ~ decl_name ~ (":" ~ decl_name)?}
+decl_name = @{ (ASCII_ALPHA) ~ (ASCII_ALPHANUMERIC | "_")* }
+
+// TODO: change fields to something more like
+// .position EulerAngles:{...}
+
+// Literal values
+value_literal = _{ boolean | float | string | int }
+boolean = {"true" | "false"}
+float = @{"-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ "f"}
+int = @{"-"? ~ ASCII_DIGIT+ ~ "i"}
+
+string = ${ "\"" ~ str_inner ~ "\"" }
+str_inner = @{ str_char* }
+str_char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
